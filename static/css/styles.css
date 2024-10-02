@@ -1,0 +1,52 @@
+
+/*css per la pagina di upload*/
+.upload_file {
+	position: fixed;
+	top: 40%;
+	left: 35%;
+	margin-top: -50px;
+
+}
+
+/*css per la pagina info*/
+.info_laureandi{
+	margin-left: 6%;
+	line-height: 5;
+	text-align: left;
+}
+.comm, .com_m, .com_t{
+	position: center;
+	color: inherit;
+	text-align: center;
+	border: 2px solid #191919;
+	background-color: #cbd5db;
+	border-radius: 10px;
+	line-height: 20px;
+	height: auto;
+
+}
+.comm:hover{
+	background-color: #34495e;
+}
+h1{
+	padding: 10px;
+}
+.title{
+	margin-left: 7%;
+	margin-top: 1%;
+	text-align: center;
+}
+
+.n_slot{
+	color: inherit;
+	text-align: center;
+	border: 1px solid #191919;
+	background-color: #cbd5db;
+	border-radius: 10px;
+	line-height: 10px;
+	height: 10%;
+	width: 6%;
+}
+
+
+

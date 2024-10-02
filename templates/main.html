@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <style>
+            /*css per il login form*/
+            body{
+                margin: 0;
+                padding: 0;
+                overflow-y : auto;
+                background: #34495e;
+                font-family: sans-serif;
+            }
+            form.box{
+                width: 300px;
+                padding: 40px;
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: #191919;
+                text-align: center;
+                border-radius: 10px;
+            }
+
+            .box h1{
+                color: white;
+                text-transform: uppercase;
+                font-weight: 500;
+            }
+            .box input[type = "text"],.box input[type = "password"]{
+                background: none;
+                display: block;
+                margin: 20px auto;
+                text-align: center;
+                border: 2px solid white;
+                padding: 14px 10px;
+                width: 200px;
+                outline: none;
+                color: white;
+                border-radius: 24px;
+                transition: 0.25s;
+            }
+            .box input[type = "text"]:focus,.box input[type = "password"]:focus {
+                width: 280px;
+                border-color: #2ecc71;
+            }
+
+            .box input[type = "submit"]{
+                background: none;
+                display: block;
+                margin: 20px auto;
+                text-align: center;
+                border: 2px solid #2ecc71;
+                padding: 14px 10px;
+                width: 200px;
+                outline: none;
+                color: white;
+                border-radius: 24px;
+                transition: 0.25s;
+                cursor: pointer;
+            }
+            .box input[type = "submit"]:hover{
+                background: #2ecc71;
+            }
+        </style>
+        <title>Login form</title>
+    </head>
+    <body>
+        <div>
+            <form class="box" action="" method="post">
+                <h1>Login</h1>
+                <label>
+                    <input type="text" name="username" placeholder="Username" value="{{ request.form.username }}">
+                </label>
+                <label>
+                    <input type="password" name="password" placeholder="Password" value="{{ request.form.password }}">
+                </label>
+                    <input type="submit" name="login" value="Login">
+            {% if error %}
+                <p class="error"><strong>Error:</strong> {{ error }}
+            {% endif %}
+            </form>
+        </div>
+        <!-- Optional JavaScript -->
+        <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    </body>
+</html>

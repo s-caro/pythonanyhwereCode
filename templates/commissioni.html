@@ -1,0 +1,1153 @@
+{% extends "layout.html" %}
+{% block head %}
+    {{ super() }}
+    <link href="static/css/styles.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.5.0/jquery.min.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js"></script>
+    <script src="//code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="//code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <style>
+        /*css per la pagina commissioni*/
+        body{
+            margin: 0;
+            padding: 0;
+            overflow-y : auto;
+            background: #cbd5db;
+            font-family: sans-serif;
+        }
+        /* definizione degli stili per i contenitori delle disponibilità*/
+        .square_green {
+            height: 20px;
+            width: 20px;
+            background-color: green;
+            border: 2px solid black;
+            display: inline-block;
+            margin-right: -4px;
+        }
+        .square_red {
+            height: 20px;
+            width: 20px;
+            background-color: red;
+            border: 2px solid black;
+            display: inline-block;
+            margin-right: -4px;
+        }
+        .square_grey {
+            height: 20px;
+            width: 20px;
+            background-color: gray;
+            border: 2px solid black;
+            display: inline-block;
+            margin-right: -4px;
+        }
+        .square_blue {
+            height: 20px;
+            width: 20px;
+            background-color: cadetblue;
+            border: 2px solid black;
+            display: inline-block;
+            margin-right: -4px;
+        }
+        .square_transparent {
+            height: 20px;
+            width: 20px;
+            background-color: #cbd5db;
+            border: 2px solid black;
+            display: inline-block;
+            margin-right: -4px;
+        }
+
+        th{
+            width: auto;
+        }
+        td{
+            width: auto;
+        }
+        /*tabella nella quale vengono mostrate le disponibilità, numero degli studenti di ogni professore*/
+        .prof_div {
+            columns: 3;
+            margin-left: 10px;
+        }
+        table{
+            width: 100%;
+        }
+        {# sezione che contiene le tabelle per le commissioni triennali #}
+        .indropTri{
+            columns: 100% {{ comm_t }};
+            height: 250px;
+            margin: 2% 1%;
+        }
+        {# singola commissione triennale #}
+        .triennali{
+            position: relative;
+            border: 2px solid black;
+            display: inline-block;
+            margin-right: -4px;
+            width: {{ (99 / comm_t) }}%;
+            height: 100%;
+        }
+
+        .profCommissioneTri, .profCommissioneMag{
+            width: auto;
+            columns: 2;
+        }
+
+        .studProfNonInCommissioneTri,.studProfNonInCommissioneMag{
+            padding: 4px;
+            position: absolute;
+            border-top: 2px solid black;
+            border-left: 2px solid black;
+            bottom: 0;
+            left: 0;
+            width: 90%;
+            height: 20%;
+        }
+
+        .nStudentiTri,.nStudentiMag{
+            padding: 4px;
+            position: absolute;
+            border-top: 2px solid black;
+            border-left: 2px solid black;
+            bottom: 0;
+            right: 0;
+            width: 10%;
+            height: 20%;
+        }
+        .nStudentiTri>p,.nStudentiMag>p{
+            margin-left: 5px;
+        }
+        .indropMag{
+            columns: 100% {{ comm_m }};
+            height: 250px;
+            margin: 2% 1%;
+        }
+        .magistrali{
+            position: relative;
+            border: 2px solid black;
+            display: inline-block;
+            margin-right: -4px;
+            width: {{ 99 / comm_m }}%;
+            height: 100%;
+        }
+        .disp{
+            width: 12%;
+            margin-right: -1%;
+            border: 1px solid black;
+            height: 20%;
+            display: inline-block;
+        }
+        .no{
+            background-color: red;
+        }
+        .ni{
+            background-color: grey;
+        }
+        .lezione{
+            background-color: cadetblue;
+        }
+        .si{
+            background-color: green;
+        }
+        .vuoto{
+            background-color: #cbd5db;
+        }
+        .occupata{
+            background-color: darkkhaki;
+        }
+
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="prof_div">
+        <table>
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Triennali</th>
+                    <th class="lettere">
+                        {% for l in lettere %}
+                        <div class="square_transparent" value="vuoto" style="border: 2px solid #cbd5db">{{ l }}</div>
+                        {% endfor %}
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p,i in prof_t|zip_longest(range(lunghezza_max)) %}
+                    {#si nomina ogni riga con  il nome del professore e specifico
+                            che si riferisce alla triennale#}
+                    <tr class="{{ p }}tri">
+                    {% if p != None %}
+                        {# viene controllato se il professore ha solo laureandi triennali #}
+                        {% if p in prof_m  %}
+                            <td class="nome{{ p }}Tri" style="color: darkred" >{{ p }}</td>
+                            <td class="studTri{{ p }}" style="color:darkred" > {{ prof_t[p] }}</td>
+                        {% else %}
+                            <td class="nome{{ p }}Tri">{{ p }}</td>
+                            <td class="studTri{{ p }}"> {{ prof_t[p] }}</td>
+                        {% endif %}
+                        <td class="disponibilita{{ p }}">
+                            {% for disp in dispComm[p] %}
+                                {% if disp == '' %}
+                                    <div class="square_transparent" value="vuoto" onclick="cambiaColore(this)"></div>
+                                {% elif disp == 'SI' %}
+                                    <div class="square_green" value="si" onclick="cambiaColore(this)"></div>
+                                {% elif disp == 'NO' %}
+                                    <div class="square_red" value="no" onclick="cambiaColore(this)"></div>
+                                {% elif disp == 'LEZIONE' %}
+                                    <div class="square_blue" value="lezione" onclick="cambiaColore(this)"></div>
+                                {% elif disp == 'NI' %}
+                                    <div class="square_grey" value="ni" onclick="cambiaColore(this)"></div>
+                                {% endif %}
+                            {% endfor %}
+                        </td>
+                    {% else %}
+                        <td>&nbsp;</td>
+                        <td></td>
+                        <td></td>
+                    {% endif %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <table>
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Magistrali</th>
+                    <th class="lettere">
+                        {% for l in lettere %}
+                        <div class="square_transparent" value="vuoto" style="border: 2px solid #cbd5db">{{ l }}</div>
+                        {% endfor %}
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p,i in prof_m|zip_longest(range(lunghezza_max)) %}
+                    {#nomino ogni riga con  il nome del professore e specifico
+                            che si riferisce alla magistrale#}
+                    <tr class="{{ p }}mag">
+                    {% if p != None %}
+                        {#  viene controllato se il professore ha solo studenti magistrali #}
+                        {% if p in prof_t %}
+                            <td style="color:darkred" class="nome{{ p }}Mag">{{ p }}</td>
+                            <td style="color:darkred" class="studMag{{ p }}"> {{ prof_m[p] }}</td>
+                        {% else %}
+                            <td class="nome{{ p }}Mag">{{ p }}</td>
+                            <td class="studMag{{ p }}"> {{ prof_m[p] }}</td>
+                        {% endif %}
+                        <td class="disponibilita{{ p }}">
+                            {% for disp in dispComm[p] %}
+                                {% if disp == '' %}
+                                    <div class="square_transparent" value="vuoto" onclick="cambiaColore(this)"></div>
+                                {% elif disp == 'SI' %}
+                                    <div class="square_green" value="si" onclick="cambiaColore(this)"></div>
+                                {% elif disp == 'NO' %}
+                                    <div class="square_red" value="no" onclick="cambiaColore(this)"></div>
+                                {% elif disp == 'LEZIONE' %}
+                                    <div class="square_blue" value="lezione" onclick="cambiaColore(this)"></div>
+                                {% elif disp == 'NI' %}
+                                    <div class="square_grey" value="ni" onclick="cambiaColore(this)"></div>
+                                {% endif %}
+                            {% endfor %}
+                        </td>
+                    {% else %}
+                        <td>&nbsp;</td>
+                        <td></td>
+                        <td></td>
+                    {% endif %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <table>
+            <thead>
+                <tr>
+                    <th>Prof</th>
+                    <th></th>
+                    <th class="lettere">
+                        {% for l in lettere %}
+                        <div class="square_transparent" value="vuoto" style="border: 2px solid #cbd5db">{{ l }}</div>
+                        {% endfor %}
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p,i in dispComm|zip_longest(range(lunghezza_max)) %}
+                    {#si nomina ogni riga con  il nome del professore e specifico
+                            che si riferisce alla triennale#}
+                    {% if p != None %}
+                        {% if not(p in prof_m) and not(p in prof_t) %}
+                            <tr class="{{ p }}lib">
+                                {# viene controllato se il professore ha solo laureandi triennali #}
+                                <td class="nome{{ p }}Lib">{{ p }}</td>
+                                <td></td>
+                                <td class="disponibilita{{ p }}">
+                                    {% for disp in dispComm[p] %}
+                                        {% if disp == '' %}
+                                            <div class="square_transparent" value="vuoto" onclick="cambiaColore(this)"></div>
+                                        {% elif disp == 'SI' %}
+                                            <div class="square_green" value="si" onclick="cambiaColore(this)"></div>
+                                        {% elif disp == 'NO' %}
+                                            <div class="square_red" value="no" onclick="cambiaColore(this)"></div>
+                                        {% elif disp == 'LEZIONE' %}
+                                            <div class="square_blue" value="lezione" onclick="cambiaColore(this)"></div>
+                                        {% elif disp == 'NI' %}
+                                            <div class="square_grey" value="ni" onclick="cambiaColore(this)"></div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+                            </tr>
+                        {% endif %}
+                    {% else %}
+                        <tr>
+                            <td>&nbsp;</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {# contenitore nel quale avviene il drop per la scelta delle commissioni magistrali #}
+    <div class="indropTri">
+        {% for triennali in range(comm_t) %}
+            {# ricordarsi di differenziare i vari contenitori #}
+            <div id="{{ triennali }}tri" class="triennali">
+                {# contenitore nel quale vengono visualizzati i giorni disponibili per ogni professore #}
+                {% for c,i in lettere|zip(range(lettere|length)) %}
+                    {#  l'id di ogni elemento è numero box, numero commissione, specifica triennale #}
+                    <div id="{{ i }}{{ triennali }}tri" class="disp"><strong>{{ c }}</strong></div>
+                {% endfor %}
+                {# contenitore nel quale vengono visualizzati i nomi dei professori per commissione #}
+                <div class="profCommissioneTri">
+                    <b>T{{ triennali + 1 }}</b>
+                </div>
+                {# contenitore nel quale viene salvata la corrispondenza prof-nStud per gli studenti dei professori non in commissione #}
+                <div class="studProfNonInCommissioneTri">
+
+                </div>
+                {# contenitore nel quale vengono visualizzati il numero degli alunni attualmente selezionati per commissione #}
+                <div class="nStudentiTri">0</div>
+            </div>
+        {% endfor %}
+    </div>
+    <div class="indropMag">
+        {% for magistrali in range(comm_m) %}
+
+            {# ricordarsi di differenziare i vari contenitori #}
+            <div id="{{ magistrali }}mag" class="magistrali">
+                {# contenitore nel quale vengono visualizzati i giorni disponibili per ogni professore #}
+                {% for c,i in lettere|zip(range(lettere|length)) %}
+                    {#  l'id di ogni elemento è numero box, numero commissione, specifica magistrale #}
+                    <div id="{{ i }}{{ magistrali }}mag" class="disp"><strong>{{ c }}</strong></div>
+                {% endfor %}
+                {# contenitore nel quale vengono visualizzati i nomi dei professori per commissione #}
+                <div class="profCommissioneMag">
+                    <b>M{{ magistrali + 1 }}</b>
+                </div>
+                {# contenitore nel quale viene salvata la corrispondenza prof-nStud per gli studenti dei professori non in commissione #}
+                <div class="studProfNonInCommissioneMag">
+
+                </div>
+                {# contenitore nel quale vengono visualizzati il numero degli alunni attualmente selezionati per commissione #}
+                <div class="nStudentiMag">0</div>
+            </div>
+        {% endfor %}
+    </div>
+    <div style="height: 20px; width: 100%; position: relative;">
+                <button style="margin: 0; position: absolute; top: 50%;left: 50%; -ms-transform: translate(-50%, -50%);
+          transform: translate(-50%, -50%);" onclick="salva()">Save</button>
+    </div>
+    <div>
+        <form style="height: 40px; width: 100%; position: relative;" id="download" action="download" method="POST">
+            <input style="margin: 0; position: absolute; top: 55%;left: 50%; -ms-transform: translate(-50%, -50%);
+              transform: translate(-50%, -50%);" type="submit" name="Download" value="Download">
+        </form>
+    </div>
+<script>
+
+    {# numeri degli slot disponibilità necessari #}
+    let giorni = '{{ (lettere|length) }}';
+
+
+    {# dizionario nel quale vengono salvate le corrispondenze commissioni -> professori + numero studenti #}
+    let dictProf = {};
+
+    {# dizionario nel quale vengono salvate le corrispondenze commissioni -> numero studenti totale #}
+    let dictStud = {};
+
+    {# dizionario nel quale vengono salvate le corrispondenze commissioni -> disponibilita #}
+    let dictDisp = {};
+
+    {# dizionario nel quale vengono salvate le corrispondenze commissioni -> 'prof -stud' dei professori che non sono in commissione #}
+    let dictProfNonInCommissione = {}
+
+
+    {# dizionario che associa al nome del professore il numero di volte che questo compare in una commissione #}
+    let dictProfNinComm = {}
+
+    {# funzione che inizializza gli slot delle disponibilità #}
+    $(document).ready( function () {
+        let triennali = $(".triennali");
+        for(let i=0;i<triennali.length;i++){
+            let id = triennali[i].id;
+            dictProf[id] = [];
+            dictDisp[id] = {};
+            dictStud[id] = 0;
+            dictProfNonInCommissione[id] = [];
+        }
+        let magistrali = $(".magistrali");
+        for(let i=0;i<magistrali.length;i++){
+            let id = magistrali[i].id;
+            dictProf[id] = [];
+            dictDisp[id] = {};
+            dictStud[id] = 0;
+            dictProfNonInCommissione[id] = [];
+        }
+        let disp = $(".disp");
+        let j=0;
+        for(let i=0;i<disp.length;i++){
+            let id = disp[i].id;
+            dictDisp[disp[i].offsetParent.id][j] = "disp si";
+            j++;
+            j = String(j);
+            if(j === giorni )
+                j = 0;
+            $("#"+id).addClass("si");
+
+        }
+
+    });
+
+
+
+
+    {# lista contentente le possibili disponibilità per le varie commissioni #}
+    let coloriCommissioni=["no", "si", "lezione", "ni", "vuoto", "occupata"]
+    {# dizionario che associa ad ogni slot quante volte è stato cambiato il colore #}
+    let cliccate = {}
+
+    {# funzione che cambia il colore della slot delle disponibilità nelle commissioni #}
+    $(".disp").click(function (){
+        let id = $("#"+this.id);
+        id.removeClass(this.className);
+        if(cliccate[this.id] === undefined){
+            cliccate[this.id] = 0;
+        }
+        id.addClass('disp '+ coloriCommissioni[cliccate[this.id]]);
+        {# id della commissione #}
+        let comm = this.offsetParent.id;
+        {# slot delle disponibilità che si vuole cambiare #}
+
+        let pos = (this.id).substring(0,1);
+        {# registro del cambiamento #}
+        dictDisp[comm][pos] = "disp " + coloriCommissioni[cliccate[this.id]];
+        cliccate[this.id] = cliccate[this.id] + 1;
+        if(cliccate[this.id]>=(coloriCommissioni.length)){
+            cliccate[this.id] = 0;
+        }
+    });
+
+    {# lista che racchiude le classi che rappresentano le disponibilità #}
+    let classiDisponibilita = ["square_red", "square_green","square_blue","square_grey","square_transparent"];
+    {# contatore per iterare sulle disponibilità #}
+    let i = 0
+
+    {# funzione che cambia ciclicamente il colore degli slot delle disponibilità nella tabella #}
+    function cambiaColore(questo){
+        {# nome della classe cambiata #}
+        questo.attributes[0].nodeValue = classiDisponibilita[i];
+        {# valore della disponibilità cambiata #}
+        questo.attributes[1].nodeValue = coloriCommissioni[i];
+        i = i+ 1;
+        if(i>4){
+            i = 0;
+        }
+    }
+
+    {# funzione che si occupa del riempimento degli slot della commissione a seconda della disponibilità
+     dove professore è il professore trascinato e cont è il contenitore delle disponibilità nella commissione#}
+    function stampablocchi(professore,cont){
+        {# collection html contenente la riga con le disponibilita del professore #}
+        let blocchi = professore[0].children[2].children;
+
+
+        let val = [];
+        {# controllo se si può droppare l'elemento #}
+        let condizione = false;
+        let contatoreDisponibilitaCompatibili = 0;
+        let contatoreNo = 0;
+        let aulaOccupata = 0;
+        for(let j=0;j<blocchi.length;j++){
+             {# valore dell'id corrente #}
+            let id = j+cont;
+            {# div colorato con l'id #}
+            let elem = $("#"+id);
+            {# valore della classe della singola slot di disponibilita nella commissione #}
+            let classe = elem[0].className;
+            {# valore della classe della singola slot di disponibilita del professore #}
+            val[j] = blocchi[j].attributes[1].nodeValue;
+
+            if (val[j] === 'si'){
+                if(classe === "disp si" || classe === "disp vuoto" || classe === "disp occupata"){
+                    contatoreDisponibilitaCompatibili++;
+                }
+                condizione = (classe === "disp ni" || classe === "disp lezione" || classe === "disp no") &&
+                    (contatoreDisponibilitaCompatibili === 0);
+            }
+            if(val[j] === "no"){
+                contatoreNo++;
+            }
+            if( (val[j] !== 'si') && (classe === "disp occupata")){
+                aulaOccupata++;
+            }
+
+        }
+
+        if(condizione || (contatoreNo === blocchi.length) || (aulaOccupata>0)) {
+            return true;
+        }
+        else {
+            for (let i = 0; i < blocchi.length; i++) {
+                {# valore dell'id corrente #}
+                let id = i+cont;
+                {# div colorato con l'id #}
+                let elem = $("#"+id);
+                {# valore della classe dell'elemento #}
+                let classe = elem[0].className;
+                {# valore della singola disponibilità del prof trascinato #}
+                val[i] = blocchi[i].attributes[1].nodeValue;
+
+
+                if (val[i] === 'no') {
+                    if (classe === "disp si" || classe === "disp ni" || classe === "disp lezione" || classe === "disp vuoto") {
+                        elem.removeClass(classe);
+                        elem.addClass("disp no");
+                    }
+                }
+                if (val[i] === 'ni') {
+                    if (classe === "disp si" || classe === "disp vuoto") {
+                        elem.removeClass(classe);
+                        elem.addClass("disp ni");
+                    }
+                }
+                if (val[i] === 'lezione') {
+                    if (classe === "disp si" || classe === "disp vuoto") {
+                        elem.removeClass(classe);
+                        elem.addClass("disp lezione");
+                    }
+                }
+                dictDisp[cont][i] = elem[0].className;
+            }
+        }
+
+        return condizione;
+    }
+
+
+    {# funzione che si occupa della corretta scrittura dei dati nella commissione
+        e1 = riga in cui si trovava l'elemento droppato
+        e = nome dell'elemento droppato
+        id = id dell'elemento droppable #}
+    function dropComm(e1,e,id, triMagLib){
+            {# nome del professore #}
+            let nome;
+            {#  numero di studenti del professore per la commissione scelta #}
+            let nStud;
+            {# numero di studenti totali per la commissione #}
+            let tot;
+            if (e in dictProfNinComm){
+            dictProfNinComm[e] = dictProfNinComm[e] + 1;
+            }
+            else{
+            dictProfNinComm[e] = 1;
+            }
+            if( id.substring(1,4) === "tri" && (triMagLib === "lib" || triMagLib === "mag")) {
+                $("#" + id + " .profCommissioneTri").append("<p onclick='elimina(this)'>" + e + "</p>");
+                 dictProf[id].push(e);
+            }
+            else {
+                if (id.substring(1, 4) === "mag" && (triMagLib === "lib" || triMagLib === "tri")) {
+                    $("#" + id + " .profCommissioneMag").append("<p onclick='elimina(this)'>" + e + "</p>");
+                    dictProf[id].push(e);
+                } else {
+                    {# selezione del nome del professore #}
+                    nome = e1[0].cells[0].childNodes[0].data;
+
+
+                    {# selezione del numero di alunni #}
+                    let num = e1[0].cells[1].childNodes[0].data;
+
+                    let divNumStud;
+                    let numeroStudentiNellaTabella;
+                    e = e.replace(/\s/g, '.');
+                    {# selezione numero studenti del prof
+                    che devono essere inseriti nella tabella #}
+                    nStud = prompt("Numero di studenti da selezionare:", num);
+
+                    if (nStud === null) {
+                        return true;
+                    }
+                    if (id.substring(1, 4) === "tri") {
+                        if(nStud === "0"){
+                            $("#" + id + " .profCommissioneTri").append("<p onclick='elimina(this)'>" + e + "</p>");
+                            dictProf[id].push(e);
+                            return;
+                        }
+                        else {
+                            divNumStud = $("#" + id + " .nStudentiTri");
+                            numeroStudentiNellaTabella = ".studTri" + e;
+                            $("#" + id + " .profCommissioneTri").append("<p onclick='elimina(this)'>" + nome + "-" + nStud + "</p>");
+                        }
+                    } else {
+                        if(nStud === "0"){
+                            $("#" + id + " .profCommissioneMag").append("<p onclick='elimina(this)'>" + e + "</p>");
+                            dictProf[id].push(e);
+                            return;
+                        }
+                        else {
+                            divNumStud = $("#" + id + " .nStudentiMag");
+                            numeroStudentiNellaTabella = ".studMag" + e;
+                            $("#" + id + " .profCommissioneMag").append("<p onclick='elimina(this)'>" + nome + "-" + nStud + "</p>");
+                        }
+                    }
+
+
+                    let x = parseInt(divNumStud.html(), 10);
+                    let y = parseInt(nStud, 10);
+                    tot = x + y;
+                    divNumStud.text(tot);
+                    {#bug riportato se il nome contiene uno spazio
+                non viene sottratto il numero nella colonna#}
+
+                    $(numeroStudentiNellaTabella).text(num - nStud);
+                    {# vengono aggiunte le modifiche fatte alla commissione #}
+
+                    dictProf[id].push(nome + "-" + nStud);
+                    dictStud[id] = tot;
+                }
+            }
+    }
+
+
+    let colonna;
+    {# funzione che si occupa del drag dell'elemento #}
+    $('td').draggable({
+        helper: "clone",
+        start: function(event, ui){
+            colonna = this.className;
+
+        }
+    });
+
+    {# funzione che pone una riga sul nome del professore passato come parametro una volta droppato
+        nome = nome del professore selezionato #}
+    function segnaProf(nome){
+            nome = nome.replace(/\s/g,'.');
+            $(".nome"+nome+"Tri").css(
+                        {# viene posta una riga sui professori che sono già stati trascinati senza togliere però la possibilità di spostarli nuovamente #}
+                        "text-decoration", "line-through"
+                );
+            $(".nome"+nome+"Mag").css(
+                        {# viene posta una riga sui professori che sono già stati trascinati senza togliere però la possibilità di spostarli nuovamente #}
+                        "text-decoration", "line-through"
+                );
+            $(".nome"+nome+"Lib").css(
+                        {# viene posta una riga sui professori che sono già stati trascinati senza togliere però la possibilità di spostarli nuovamente #}
+                        "text-decoration", "line-through"
+                );
+    }
+    {# funzione che toglie la riga dal nome del professore passato come parametro una volta cliccato
+        nome = nome del professore selezionato #}
+    function togliSegnoProf(nome){
+
+        $(".nome"+nome+"Tri").css(
+                    {# viene tolta una riga sui professori che sono già stati trascinati #}
+                    "text-decoration", "none"
+            );
+        $(".nome"+nome+"Mag").css(
+                    {# viene tolta una riga sui professori che sono già stati trascinati #}
+                    "text-decoration", "none"
+            );
+        $(".nome"+nome+"Lib").css(
+                    {# viene tolta una riga sui professori che sono già stati trascinati #}
+                    "text-decoration", "none"
+            );
+    }
+
+
+    {# funzione che segna nella commissione la corrispondenza alunno professore per i laureandi i cui relatori non sono nella commissione scelta
+        e1 = nome della classe dell'elemento trascinato
+        e = numero degli studenti del professore
+        id = id della commissione in cui è avvenuto il drop
+        classe = nome della classe della commissione in cui è avvenuto il drop
+     #}
+
+    function trascinaNumero(e1,e,id,classe){
+            {# elenco dei professori già presenti nel riquadro #}
+            let nomiProfGiaPresenti = $("#"+id+" span");
+            {# riga della tabella che contiene il numero degli studenti #}
+            let elemento = $("." + e1);
+            {# nome del professore che ha quel numero di laureandi #}
+            let nomeProf = elemento[0].previousElementSibling.firstChild.textContent;
+            //togliSegnoProf(nomeProf);
+            let divNumStud;
+            let tot;
+            let nStud = prompt("Numero di studenti da selezionare:",e);
+            e = e.replace(/\s/g,'');
+            nStud = nStud.replace(/\s/g,'');
+            nStud = parseInt(nStud,10);
+            let numeroDaMettere = nStud;
+            for (let i=0;i<nomiProfGiaPresenti.length;i++){
+                let nome = nomiProfGiaPresenti[i].innerText;
+                let numb = nome.match(/\d/g);
+                numb = numb.join("");
+                {# viene selezionato solo il nome della persona senza il numero degli studenti #}
+                let tmp = nome.substring(0, nome.indexOf('-'));
+                if(tmp === (nomeProf)){
+                    nomiProfGiaPresenti[i].remove();
+                    for (let j=0; j<dictProfNonInCommissione[id].length; j++){
+                        if (nome === (dictProfNonInCommissione[id][j]) ){
+                            dictProfNonInCommissione[id].splice(j,1);
+                        }
+                    }
+                    numeroDaMettere = parseInt(numb,10) + nStud;
+                }
+            }
+            if( classe === "triennali ui-droppable") {
+                divNumStud = $("#" + id + " .nStudentiTri");
+                $("#" + id + " .studProfNonInCommissioneTri").append("<span onclick='eliminaProf(this)'>" + nomeProf + "-"+numeroDaMettere+ "</span> ");
+            }
+            else
+                divNumStud = $("#" + id + " .nStudentiMag");
+                $("#" + id + " .studProfNonInCommissioneMag").append("<span onclick='eliminaProf(this)'>" + nomeProf + "-"+numeroDaMettere+ "</span> ");
+
+            e = parseInt(e,10);
+            if(e>0) {
+                let x = parseInt(divNumStud.html(),10);
+                tot = x + nStud;
+                {# vengono aggiunti gli studenti al numero totale di studenti per la commissione #}
+                divNumStud.text(tot);
+                {# vengono tolti gli studenti dal numero di studenti del professore #}
+                elemento.text(e-nStud);
+            }
+            dictStud[id] = tot;
+            dictProfNonInCommissione[id].push(nomeProf + "-" + numeroDaMettere);
+    }
+
+
+
+    {# funzione che si occupa del drop degli elementi nelle commissioni triennali #}
+    $(".triennali, .magistrali").droppable({
+        activeClass: 'ui-state-hover',
+        hoverClass: 'ui-state-active',
+        drop: function (event, ui) {
+
+            let str = ui.draggable[0].className;
+            if(str.substring(0, 13) === "disponibilita"){
+                return false;
+            }
+
+
+            {# id dell'elemento droppable #}
+            let id = event.target.id;
+            {# nome della classe in cui avviene il drop #}
+            let classe = event.target.className;
+
+            {# elemento della tabella dei professori che è stato trascinato #}
+            let e1;
+            {# nome elemento trascinato #}
+            let e = $(ui.draggable).html();
+
+            let triMagLib;
+            if(colonna === "nome"+e+"Tri ui-draggable ui-draggable-handle"){
+                e1 = document.getElementsByClassName(e+"tri");
+                triMagLib = "tri";
+            }
+            if(colonna === "nome"+e+"Mag ui-draggable ui-draggable-handle"){
+                e1 = document.getElementsByClassName(e+"mag");
+                triMagLib = "mag";
+            }
+            if(colonna === "nome"+e+"Lib ui-draggable ui-draggable-handle"){
+                e1 = document.getElementsByClassName(e+"lib");
+                triMagLib = "lib";
+            }
+
+
+            {# selezione riga della tabella che corrisponde all'elemento trascinato #}
+
+            let numeroStudenti = ui.draggable[0].classList[0];
+            if(Number.isInteger(parseInt(e,10))){
+                trascinaNumero(numeroStudenti,e,id,classe);
+                return false;
+            }
+
+            if (stampablocchi(e1, id)) {
+                window.alert("disponibilità non compatibili");
+                return false;
+            }
+            if(dropComm(e1,e,id,triMagLib))
+                return false;
+            else {
+                segnaProf(e);
+            }
+
+            {# aggiungio il prof appena droppato #}
+            {# RICORDATI DI METTERE COME CHIAVE LA TABELLA #}
+
+        }
+    });
+
+    {# funzione che serve a cambiare il colore della slot della disponibilità della commissione
+        quando viene eliminato un professore #}
+    function correggiColoriCommissione(listaProfessoriCommissione, idCommissione, professoreEliminato){
+
+        let dispProfEliminato = $(".disponibilita"+professoreEliminato);
+
+        /*ciclo più esterno itera sulle disponibilità del prof eliminato e li confronta con quelli dei singoli professori*/
+        for (let i=0; i<giorni; i++){
+            /*id dello slot corrente della commissione attuale*/
+            let elem = $("#"+i+idCommissione);
+
+
+            /*valore dello slot corrente della commissione attuale*/
+            let classe = elem[0].className;
+
+            /*se è stato inserito un solo professore va rimesso tutto verde*/
+            if(listaProfessoriCommissione.length === 0){
+                if(classe === "disp occupata"){
+
+                }
+                else {
+                    elem.removeClass(classe);
+                    elem.addClass("disp si");
+                }
+            }
+
+            /*disponibilità del professore nella slot selezionata*/
+            if(dispProfEliminato[0].children[i].attributes[1].nodeValue === "no"){
+
+                /*controllo per sapere se è già stato cambiato il colore*/
+                let giaCambiato = 0;
+                /* ciclo interno itera sulla lista dei professori*/
+                for(let j=0; j<listaProfessoriCommissione.length; j++) {
+
+                    /*si estrae il noome del professore */
+                    let professore = listaProfessoriCommissione[j].innerHTML;
+                    let numb = professore.match(/\d/g);
+                    /*controllo se il professore ha studenti o meno*/
+                    if (numb !== null) {
+                        professore = professore.substring(0, professore.indexOf('-'));
+                    }
+                    professore = professore.replace(/\s/g, '.');
+
+
+                    /*elenco delle disponibilità del singolo prof nella commissione preso in considerazine*/
+                    let dispoAltriProf = $(".disponibilita" + professore);
+
+                    /*se almeno un altro professore non può quel giorno allora il valore può rimanere no*/
+                    if (dispoAltriProf[0].children[i].attributes[1].nodeValue === "no") {
+
+                        elem.removeClass(elem[0].className);
+
+                        elem.addClass("disp no");
+                        giaCambiato++;
+
+                        break;
+                    } else {
+                        /*senno controllo se un altro professore ha ni o lezione per quello stesso slot e lo sostituisco*/
+                        if ((dispoAltriProf[0].children[i].attributes[1].nodeValue === "ni" || dispoAltriProf[0].children[i].attributes[1].nodeValue === "lezione") && (giaCambiato === 0)) {
+                            giaCambiato++;
+                            elem.removeClass(elem[0].className);
+
+                            elem.addClass("disp " + dispoAltriProf[0].children[i].attributes[1].nodeValue);
+                        } else {
+                            if (classe === "disp occupata") {
+                                break;
+                            }
+                            /*se nessun altro professore è occupato in quella slot allora lo slot ha disponibilità si*/
+                            else {
+
+                                if(giaCambiato === 0) {
+                                    elem.removeClass(elem[0].className);
+                                    elem.addClass("disp si");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            /*disponibilità del professore nella slot selezionata*/
+            if(dispProfEliminato[0].children[i].attributes[1].nodeValue === "ni"){
+                /*se il valore della slot è ni si deve capire che valore attribuire alla slot quando viene eliminato il professore*/
+                if(classe === "disp ni"){
+                    let giaCambiato = 0;
+                    for(let j=0; j<listaProfessoriCommissione.length; j++){
+                        /*si estrae il noome del professore */
+                        let professore = listaProfessoriCommissione[j].innerHTML;
+                        let numb = professore.match(/\d/g);
+                        /*controllo se il professore ha studenti o meno*/
+                        if(numb !== null){
+                            professore = professore.substring(0, professore.indexOf('-'));
+                        }
+                        professore = professore.replace(/\s/g, '.');
+
+                        /*elenco delle disponibilità del singolo prof nella commissione preso in considerazine*/
+                        let dispoAltriProf = $(".disponibilita"+professore);
+                        /*se almeno un altro professore ha come valore ni nella stessa slot esco dal ciclo perchè  non va cambiato il valore*/
+                        if(dispoAltriProf[0].children[i].attributes[1].nodeValue === "ni") {
+
+                            elem.removeClass(elem[0].className);
+                            elem.addClass("disp ni");
+                            giaCambiato++;
+                            break;
+                        }
+                        else{
+                            /*se un altro prof ha lezione nella stessa slot è la seconda per priorità quindi sostituisco*/
+                            if((dispoAltriProf[0].children[i].attributes[1].nodeValue === "lezione") && (giaCambiato === 0)){
+                                giaCambiato++;
+                                elem.removeClass(elem[0].className);
+                                elem.addClass("disp "+dispoAltriProf[0].children[i].attributes[1].nodeValue);
+                                break;
+                            }
+                            if(classe === "disp occupata"){
+                                break
+                            }
+                            /*se nessun altro professore è occupato in quella slot allora lo slot ha disponibilità si*/
+                            else{
+                                if(giaCambiato === 0) {
+                                    elem.removeClass(elem[0].className);
+                                    elem.addClass("disp si");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            /*disponibilità del professore nella slot selezionata*/
+            if(dispProfEliminato[0].children[i].attributes[1].nodeValue === "lezione"){
+                /*se il valore della slot è lezione si deve capire che valore attribuire alla slot quando viene eliminato il professore*/
+                if(classe === "disp lezione"){
+                    let giaCambiato = 0;
+                    for(let j=0; j<listaProfessoriCommissione.length; j++) {
+                        /*si estrae il noome del professore */
+                        let professore = listaProfessoriCommissione[j].innerHTML;
+                        let numb = professore.match(/\d/g);
+                        /*controllo se il professore ha studenti o meno*/
+                        if (numb !== null) {
+                            professore = professore.substring(0, professore.indexOf('-'));
+                        }
+                        professore = professore.replace(/\s/g, '.');
+
+                        /*elenco delle disponibilità del singolo prof nella commissione preso in considerazine*/
+                        let dispoAltriProf = $(".disponibilita" + professore);
+                        /*se almeno un altro professore ha come valore lezione nella stessa slot esco dal ciclo perchè  non va cambiato il valore*/
+                        if (dispoAltriProf[0].children[i].attributes[1].nodeValue === "lezione"){
+                                elem.removeClass(elem[0].className);
+                                elem.addClass("disp lezione");
+                                giaCambiato++;
+                                break;
+                            }
+                        else{
+                            /*se un altro prof ha ni nella stessa slot è la seconda per priorità quindi sostituisco*/
+                            if((dispoAltriProf[0].children[i].attributes[1].nodeValue === "ni") && (giaCambiato === 0)){
+                                giaCambiato++;
+                                elem.removeClass(elem[0].className);
+                                elem.addClass("disp "+dispoAltriProf[0].children[i].attributes[1].nodeValue);
+                                break;
+                            }
+                            if(classe === "disp occupata"){
+                                break
+                            }
+                            /*se nessun altro professore è occupato in quella slot allora lo slot ha disponibilità si*/
+                            else{
+                                if(giaCambiato === 0) {
+                                    elem.removeClass(elem[0].className);
+                                    elem.addClass("disp si");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            dictDisp[idCommissione][i] = elem[0].className;
+        }
+    }
+
+    {# funzione che elimina dalla sezione 'prof non in commissione' il professore su cui si è cliccato #}
+    function eliminaProf(prof){
+        if(window.confirm("Procedere con la rimozione dei laureandi?")) {
+            {# id della commissione selezionata #}
+            let id = prof.offsetParent.offsetParent.id;
+            {# nome-num stud del prof selezionato #}
+            let nome = prof.innerHTML;
+            {# rimuovo il professore dal dizionario dei prof non in commissione per quella commissione #}
+            for (let j = 0; j < dictProfNonInCommissione[id].length; j++) {
+
+                if (nome === (dictProfNonInCommissione[id][j])) {
+                    dictProfNonInCommissione[id].splice(j, 1);
+                }
+            }
+
+            {# numb = numero degli studenti laureandi del professore nella commissione desiderata #}
+            let numb = nome.match(/\d/g);
+            numb = numb.join("");
+            {# viene selezionato solo il nome della persona senza il numero degli studenti #}
+            nome = nome.substring(0, nome.indexOf('-'));
+            {# si formattano i nomi composti da più parole in un formato standard #}
+            nome = nome.replace(/\s/g, '.');
+
+            {# divNumStud = classe che contiene il numero degli studenti nella commissione #}
+            let divNumStud;
+            {#  numeroStudentiNellaTabella = id della sezione della tabella che contiene il numero degli studenti per prof #}
+            let numeroStudentiNellaTabella;
+            {#  numeroStudVecchi = numero degli studenti presenti per il prof nella tabella prima del click #}
+            let numeroStudVecchi;
+            {# si identifica se il nome da cancellare si trova in una commissione triennale o magistrale #}
+            if (id.substr(1, 3) === "tri") {
+                divNumStud = $("#" + id + " .nStudentiTri");
+                numeroStudentiNellaTabella = ".studTri" + nome;
+                numeroStudVecchi = $(numeroStudentiNellaTabella).html();
+            } else {
+                divNumStud = $("#" + id + " .nStudentiMag");
+                numeroStudentiNellaTabella = ".studMag" + nome;
+                numeroStudVecchi = $(numeroStudentiNellaTabella).html();
+            }
+            {# x = valore numerico del numero degli studenti presenti nella tabella della commissione #}
+            let x = parseInt(divNumStud.html(), 10);
+            {#  tot = valore finale presente nella commissione #}
+            let tot = x - parseInt(numb, 10);
+            divNumStud.text(tot);
+            {# viene modificato il numero degli studenti per la commissione scelta #}
+            dictStud[id] = tot;
+
+            $(numeroStudentiNellaTabella).text(parseInt(numeroStudVecchi, 10) + parseInt(numb, 10));
+            prof.remove();
+        }
+
+    }
+
+    {# funzione che elimina dalla commissione il professore su cui si è cliccato #}
+    function elimina(prof){
+        if (window.confirm("Procedere con la rimozione del commissario?")) {
+
+            {# id = identificativo della commissione in cui si trova il prof #}
+            let id = prof.offsetParent.id;
+            {# nome-nStudenti del prof nella commissione #}
+            let nome = prof.innerText;
+
+            {# rimuovo il professore dal dizionario dei prof per quella commissione #}
+            dictProf[id].splice(dictProf[id].indexOf(nome), 1);
+
+            {# numb = numero degli studenti laureandi del professore nella commissione desiderata #}
+            let numb = nome.match(/\d/g);
+
+            {#  se il prof non ha studenti va solo eliminato il nome #}
+            if (numb === null) {
+                prof.remove();
+            } else {
+                numb = numb.join("");
+                {# viene selezionato solo il nome della persona senza il numero degli studenti #}
+                nome = nome.substring(0, nome.indexOf('-'));
+                {# si formattano i nomi composti da più parole in un formato standard #}
+                nome = nome.replace(/\s/g, '.');
+
+                {# divNumStud = classe che contiene il numero degli studenti nella commissione #}
+                let divNumStud;
+                {#  numeroStudentiNellaTabella = id della sezione della tabella che contiene il numero degli studenti per prof #}
+                let numeroStudentiNellaTabella;
+                {#  numeroStudVecchi = numero degli studenti presenti per il prof nella tabella prima del click #}
+                let numeroStudVecchi;
+                {# si identifica se il nome da cancellare si trova in una commissione triennale o magistrale #}
+                if (id.substr(1, 3) === "tri") {
+                    divNumStud = $("#" + id + " .nStudentiTri");
+                    numeroStudentiNellaTabella = ".studTri" + nome;
+                    numeroStudVecchi = $(numeroStudentiNellaTabella).html();
+                } else {
+                    divNumStud = $("#" + id + " .nStudentiMag");
+                    numeroStudentiNellaTabella = ".studMag" + nome;
+                    numeroStudVecchi = $(numeroStudentiNellaTabella).html();
+                }
+                {# x = valore numerico del numero degli studenti presenti nella tabella della commissione #}
+                let x = parseInt(divNumStud.html(), 10);
+                {#  tot = valore finale presente nella commissione #}
+                let tot = x - parseInt(numb, 10);
+                divNumStud.text(tot);
+                {# viene modificato il numero degli studenti per la commissione scelta #}
+                dictStud[id] = tot;
+
+                $(numeroStudentiNellaTabella).text(parseInt(numeroStudVecchi, 10) + parseInt(numb, 10));
+                prof.remove();
+            }
+            nome = nome.replace('.', ' ');
+            dictProfNinComm[nome] = dictProfNinComm[nome] - 1;
+
+            if (dictProfNinComm[nome] === 0) {
+                nome = nome.replace(/\s/g, '.');
+                togliSegnoProf(nome);
+            }
+            nome = nome.replace(/\s/g, '.');
+            let listaProfNellaCommissione = $("#" + id + " p");
+            correggiColoriCommissione(listaProfNellaCommissione, id, nome);
+        }
+    }
+
+    {# viene creato un dizionario prof -> disponibilità aggiornato a seconda dei cambiamenti svolti
+        durante la lavorazione #}
+    function raccogliProfDisponibilita(){
+        let result = {}
+        let righe = $("tr");
+
+        for(let i=0; i < righe.length; i++){
+            {# nome del professore selezionato #}
+            let nome = righe[i].cells[0].innerText;
+            {# si itera nelle disponibilità #}
+            let disp = righe[i].cells[2].children;
+            {# si inizializza il dizionario relativo al professore corrente #}
+            if( (nome !== '') && (nome !== 'Prof')) {
+                let elencodisp = [];
+                for (let j = 0; j < disp.length; j++) {
+                    elencodisp.push(disp[j].attributes[1].value);
+                }
+                result[nome] = elencodisp;
+            }
+        }
+
+        return result;
+    }
+
+    {# funzione richiamata quando si chiede di salvare i file subito prima del download
+        invia al server i dati necessari per creare la bozza delle commissioni #}
+    function  salva() {
+
+        let dictProfDisp = raccogliProfDisponibilita();
+        {# lista che contiene i tre dizionari da mandare al server python per poi essere
+            trasformati in un file excel o csv #}
+        let risultato = [];
+        console.log(dictDisp)
+        risultato.push(dictDisp);
+        risultato.push(dictStud);
+        risultato.push(dictProf);
+        risultato.push(dictProfDisp);
+        risultato.push(dictProfNonInCommissione);
+
+
+        let json_risultato = JSON.stringify(risultato)
+        fetch('/save', {
+
+            // Specify the method
+            method: 'POST',
+
+            // A JSON payload
+            body: json_risultato,
+            headers: new Headers({
+              "content-type": "application/json"
+            })
+        });
+        window.alert("file salvato, procedere al download");
+    }
+
+
+</script>
+{% endblock content %}

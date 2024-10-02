@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+{% block head %}
+    {{ super() }}
+    <link href="static/css/styles.css" rel="stylesheet" type="text/css">
+{% endblock %}
+{% block content %}
+    <div class="info_laureandi">
+        {# visualizzazione del numero di laureandi triennali e magistrali #}
+        <h1 class="lt">Laureandi triennali: {{ lt }}</h1>
+        <h1 class="lm">Laureandi magistrali: {{ lm }}</h1>
+            <p>Se si vogliono modificare i numeri delle commissioni è necessario inserire il numero desiderato
+                per entrambe le commissioni e cliccare conferma</p>
+        <form method="POST" action="laureandi">
+            {# visualizzazione del numero di commissioni triennali e magistrali modificabile in caso #}
+            <h1 class="ct">Commissioni Triennali:</h1>
+                <input class="com_t" type="text" name="commissioniTriennali" value={{ ct }}>
+            <h1 class="cm">Commissioni Magistrali:</h1>
+                <input class="com_m" type="text" name="commissioniMagistrali" value={{ cm }}>
+            <div>
+                <input class="comm" type="submit" name="conferma" value="CONFERMA">
+            </div>
+        </form>
+    </div>
+{% endblock content %}
