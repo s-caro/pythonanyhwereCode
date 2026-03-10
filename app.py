@@ -31,7 +31,7 @@ def main():
             error = 'Invalid Credentials. Please try again.'
         else:
             return redirect(url_for('upload_file', nomeFile="", n_disp=NUMERO_SLOT))
-    return render_template('main.html', error=error)
+    return render_template('index.html', error=error)
 
 
 # viene specificato il path dove salvare i file caricati e da scaricare
